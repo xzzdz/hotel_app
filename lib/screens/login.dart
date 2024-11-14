@@ -9,7 +9,6 @@ import 'home.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
-
   @override
   State<Login> createState() => _LoginState();
 }
@@ -19,6 +18,8 @@ class _LoginState extends State<Login> {
 
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
+
+  bool _obscurePassword = true; // กำหนดให้รหัสผ่านไม่แสดงเริ่มต้น
   Future sign_in() async {
     // เปลี่ยน URL เป็น URL ของ login.php
     String url =
@@ -127,7 +128,7 @@ class _LoginState extends State<Login> {
                       ),
                       decoration: InputDecoration(
                         prefixIcon: Icon(Icons.person, color: Colors.black),
-                        hintText: "Email",
+                        hintText: "E-mail",
                         hintStyle: TextStyle(
                           color: Colors.black12,
                           fontFamily: Font_.Fonts_T,
@@ -153,7 +154,6 @@ class _LoginState extends State<Login> {
                       controller: email,
                     ),
                   ),
-                  // const SizedBox(height: 10),
                   SizedBox(
                     width: 300,
                     height: 70,
@@ -179,6 +179,20 @@ class _LoginState extends State<Login> {
                           borderSide: BorderSide.none,
                           borderRadius: BorderRadius.circular(30),
                         ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: const Color.fromARGB(255, 164, 164, 164),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword =
+                                  !_obscurePassword; // เปลี่ยนสถานะการแสดงรหัสผ่าน
+                            });
+                          },
+                        ),
                       ),
                       validator: (val) {
                         if (val!.isEmpty) {
@@ -187,8 +201,11 @@ class _LoginState extends State<Login> {
                         return null;
                       },
                       controller: password,
+                      obscureText:
+                          _obscurePassword, // ใช้ตัวแปร _obscurePassword
                     ),
                   ),
+
                   // const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.only(left: 140),
@@ -210,7 +227,7 @@ class _LoginState extends State<Login> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: bottoncolor, // สีปุ่มเข้ม
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                         ),
                         onPressed: () {
