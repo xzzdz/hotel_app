@@ -1,11 +1,106 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../color.dart';
 
-class Detail extends StatelessWidget {
+class Detail extends StatefulWidget {
   final dynamic item; // ข้อมูลที่ส่งเข้ามา อาจเป็น Map หรือ Object
 
   const Detail({Key? key, required this.item}) : super(key: key);
+
+  @override
+  State<Detail> createState() => _DetailState();
+}
+
+class _DetailState extends State<Detail> {
+  String? currentUserName; // ชื่อผู้ใช้งานที่ login
+  String? currentStatus; // สถานะปัจจุบัน
+  String? assignedTo; // ชื่อผู้รับงาน
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUserName();
+    fetchReportDetail(); // ดึงข้อมูลล่าสุดเมื่อเข้าใช้งาน
+  }
+
+  Future<void> _loadCurrentUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      currentUserName =
+          prefs.getString('name'); // ดึงชื่อจาก shared_preferences
+    });
+  }
+
+  Future<void> fetchReportDetail() async {
+    try {
+      String url =
+          "http://www.comdept.cmru.ac.th/64143168/hotel_app_php/get_report_detail.php";
+      final response = await http.post(
+        Uri.parse(url),
+        body: {'id': widget.item['id'].toString()}, // ส่ง ID เพื่อดึงข้อมูล
+      );
+
+      var data = json.decode(response.body);
+
+      if (data['status'] == "success") {
+        setState(() {
+          currentStatus = data['report']['status']; // อัปเดตสถานะ
+          assignedTo = data['report']['assigned_to']; // อัปเดตชื่อผู้รับงาน
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('เกิดข้อผิดพลาด: ${data['message']}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('เกิดข้อผิดพลาด: $e')),
+      );
+    }
+  }
+
+  Future<void> _updateStatus(String newStatus) async {
+    try {
+      String url =
+          "http://www.comdept.cmru.ac.th/64143168/hotel_app_php/update_status.php";
+      final response = await http.post(
+        Uri.parse(url),
+        body: {
+          'id': widget.item['id'].toString(), // รหัสแจ้งซ่อม
+          'status': newStatus, // สถานะใหม่
+          'assigned_to': currentStatus == "รอดำเนินการ"
+              ? currentUserName
+              : assignedTo, // ใช้ assignedTo เดิมเมื่อสถานะเป็น "เสร็จสิ้น"
+        },
+      );
+
+      var data = json.decode(response.body);
+
+      if (data['status'] == "success") {
+        setState(() {
+          currentStatus = newStatus; // อัปเดตสถานะใน UI
+          if (newStatus == "กำลังดำเนินการ") {
+            assignedTo =
+                currentUserName; // อัปเดต assignedTo ให้เป็นผู้ใช้งานปัจจุบัน
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('สถานะถูกอัปเดตเรียบร้อย')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('เกิดข้อผิดพลาด: ${data['message']}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('เกิดข้อผิดพลาด: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,32 +134,22 @@ class Detail extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDetailRow('รหัสแจ้งซ่อม:', item['id'] ?? '-'),
-                _buildDetailRow('ประเภท:', item['type'] ?? '-'),
-                _buildDetailRow('รายละเอียด:', item['detail'] ?? '-'),
-                _buildDetailRow('สถานะ:', item['status'] ?? '-'),
-                _buildDetailRow('วันที่แจ้ง:', item['date'] ?? '-'),
+                _buildDetailRow('รหัสแจ้งซ่อม:', widget.item['id'] ?? '-'),
+                _buildDetailRow('ประเภท:', widget.item['type'] ?? '-'),
+                _buildDetailRow('รายละเอียด:', widget.item['detail'] ?? '-'),
+                _buildDetailRow('สถานะ:', currentStatus ?? '-'),
+                _buildDetailRow('วันที่แจ้ง:', widget.item['date'] ?? '-'),
+                if (assignedTo != null && assignedTo!.isNotEmpty)
+                  _buildDetailRow('ผู้รับงาน:', assignedTo ?? '-'),
                 const SizedBox(height: 20),
                 Align(
                   alignment: Alignment.center,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: const Icon(Icons.check, color: Colors.white),
-                    label: const Text('รับงาน',
-                        style: TextStyle(
-                          fontFamily: Font_.Fonts_T,
-                          color: Colors.white,
-                          fontSize: 16,
-                        )),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: bottoncolor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
+                  child: currentStatus == "รอดำเนินการ"
+                      ? _buildActionButton("รับงาน", "กำลังดำเนินการ")
+                      : currentStatus == "กำลังดำเนินการ" &&
+                              assignedTo == currentUserName
+                          ? _buildActionButton("เสร็จสิ้น", "เสร็จสิ้น")
+                          : const SizedBox(),
                 ),
               ],
             ),
@@ -104,6 +189,25 @@ class Detail extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(String label, String newStatus) {
+    return ElevatedButton.icon(
+      onPressed: () => _updateStatus(newStatus),
+      icon: const Icon(Icons.check, color: Colors.white),
+      label: Text(label,
+          style: const TextStyle(
+            fontFamily: Font_.Fonts_T,
+            color: Colors.white,
+            fontSize: 16,
+          )),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: bottoncolor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
     );
   }

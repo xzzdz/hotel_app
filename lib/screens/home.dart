@@ -2,19 +2,23 @@ import 'dart:convert';
 import 'package:app1/screens/detail.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async'; // เพิ่ม import สำหรับ Timer
 
 import '../color.dart';
 import 'login.dart';
 
 class Homepage extends StatefulWidget {
-  final String name;
-  const Homepage({Key? key, required this.name}) : super(key: key);
+  const Homepage({
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<Homepage> createState() => _HomepageState();
 }
 
 class _HomepageState extends State<Homepage> {
+  String? uesrname;
   String? selectedType = 'ทั้งหมด';
   String? selectedStatus = 'ทั้งหมด';
   int currentPage = 1;
@@ -67,6 +71,19 @@ class _HomepageState extends State<Homepage> {
     });
   }
 
+  Future<void> _loadUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      uesrname = prefs.getString('name'); // ดึงค่าชื่อผู้ใช้
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName(); // โหลดข้อมูลก่อนแสดงผล
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,7 +118,7 @@ class _HomepageState extends State<Homepage> {
                       ),
                       SizedBox(height: 10),
                       Text(
-                        widget.name,
+                        uesrname ?? '',
                         maxLines: 1,
                         style: TextStyle(
                           fontFamily: Font_.Fonts_T,
@@ -443,8 +460,9 @@ class _HomepageState extends State<Homepage> {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) =>
-                                                  Detail(item: item),
+                                              builder: (context) => Detail(
+                                                item: item,
+                                              ),
                                             ),
                                           );
                                         },
@@ -499,8 +517,11 @@ class _HomepageState extends State<Homepage> {
               child: Text('cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop(); // ปิด dialog ก่อน
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                await prefs
+                    .clear(); // ลบข้อมูลทั้งหมด หรือใช้ prefs.remove('name') เพื่อลบเฉพาะค่า
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(

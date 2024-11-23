@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../color.dart';
 import 'home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -20,7 +21,6 @@ class _LoginState extends State<Login> {
   TextEditingController password = TextEditingController();
 
   bool _obscurePassword = true; // กำหนดให้รหัสผ่านไม่แสดงเริ่มต้น
-  String? userName; // ตัวแปรสำหรับเก็บชื่อผู้ใช้/////////
 
   Future sign_in() async {
     String url =
@@ -52,14 +52,17 @@ class _LoginState extends State<Login> {
         },
       );
     } else if (data['status'] == "success") {
-      setState(() {
-        userName = data['name']; // เก็บชื่อผู้ใช้จาก API
-      });
-      // ไปยังหน้า Homepage พร้อมแสดงชื่อ
+      print("Name from API: ${data['name']}"); // ตรวจสอบค่าที่ได้จาก API
+      // บันทึกชื่อผู้ใช้ลงใน shared_preferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('name', data['name']); // บันทึกค่าชื่อผู้ใช้
+
+      // ไปยังหน้า Homepage
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => Homepage(name: userName!), // ส่งชื่อไปหน้า Home
+          builder: (context) =>
+              const Homepage(), // ไม่ต้องส่งชื่อผ่าน constructor
         ),
       );
       // Navigator.pushReplacement(
