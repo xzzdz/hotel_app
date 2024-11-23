@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:app1/screens/detail.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -6,7 +7,8 @@ import '../color.dart';
 import 'login.dart';
 
 class Homepage extends StatefulWidget {
-  const Homepage({super.key});
+  final String name;
+  const Homepage({Key? key, required this.name}) : super(key: key);
 
   @override
   State<Homepage> createState() => _HomepageState();
@@ -44,7 +46,7 @@ class _HomepageState extends State<Homepage> {
       case "กำลังดำเนินการ":
         return Icons.autorenew;
       default:
-        return Icons.check_circle;
+        return Icons.check_circle; // ไอคอนสําหรับสถานะ "เสร็จสิ้น"
     }
   }
 
@@ -68,14 +70,113 @@ class _HomepageState extends State<Homepage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        child: Column(
+          children: [
+            // ส่วนหัว Drawer
+            Container(
+              decoration: BoxDecoration(
+                color: Color(0xFF547093), // สีพื้นหลัง
+              ),
+              child: SizedBox(
+                width: double.infinity, // ขยายเต็มความกว้าง
+                child: Padding(
+                  padding: EdgeInsets.only(top: 40, bottom: 20),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 80, // ขนาดของรูปโปรไฟล์
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle, // รูปแบบวงกลม
+                          image: DecorationImage(
+                            image: AssetImage('assets/img/runnerx.png'),
+                            fit: BoxFit.cover, // ปรับรูปให้เต็มพื้นที่
+                          ),
+                          border: Border.all(
+                            color: Colors.white, // ขอบสีขาว
+                            width: 2, // ความหนาของขอบ
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        widget.name,
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontFamily: Font_.Fonts_T,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // ส่วนรายการเมนู
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.home, color: Colors.black),
+                    title: Text(
+                      'หน้าหลัก',
+                      style: TextStyle(fontFamily: Font_.Fonts_T, fontSize: 16),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      // Action สำหรับเมนู "หน้าหลัก"
+                    },
+                  ),
+                  Divider(),
+                  ListTile(
+                    leading: Icon(Icons.list, color: Colors.black),
+                    title: Text(
+                      'รายการการแจ้งซ่อม',
+                      style: TextStyle(fontFamily: Font_.Fonts_T, fontSize: 16),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      // Action สำหรับเมนู "รายการการแจ้งซ่อม"
+                    },
+                  ),
+                ],
+              ),
+            ),
+            // ส่วนท้าย
+            Container(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Divider(),
+                  Text(
+                    '© 2024 The Kannas Hotel Chiangmai',
+                    style: TextStyle(
+                      fontFamily: Font_.Fonts_T,
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
         centerTitle: true,
         elevation: 0,
-        automaticallyImplyLeading: false,
+        // automaticallyImplyLeading: false, // ไม่แสดงปุ่ม back
         backgroundColor: bottoncolor,
         title: const Text(
-          "ระบบแจ้งซ่อม",
+          "ระบบแจ้งซ่อม ",
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w600,
@@ -162,21 +263,6 @@ class _HomepageState extends State<Homepage> {
                 ),
               ],
             ),
-            // const SizedBox(height: 20),
-            // const Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //   children: [
-            //     Text(
-            //       "รายการแจ้งซ่อมล่าสุด",
-            //       style: TextStyle(
-            //         fontSize: 24,
-            //         fontWeight: FontWeight.bold,
-            //         fontFamily: Font_.Fonts_T,
-            //         color: Color(0xFF37474F),
-            //       ),
-            //     ),
-            //   ],
-            // ),
             const SizedBox(height: 20),
             Expanded(
               child: FutureBuilder<List<dynamic>>(
@@ -215,7 +301,7 @@ class _HomepageState extends State<Homepage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            "รายการแจ้งซ่อมล่าสุด",
+                            "รายการแจ้งซ่อมล่าสุด ",
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -290,7 +376,7 @@ class _HomepageState extends State<Homepage> {
                                             color:
                                                 getStatusColor(item['status']),
                                             borderRadius:
-                                                BorderRadius.circular(8),
+                                                BorderRadius.circular(10),
                                           ),
                                           child: Row(
                                             children: [
@@ -354,7 +440,13 @@ class _HomepageState extends State<Homepage> {
                                       alignment: Alignment.centerRight,
                                       child: ElevatedButton.icon(
                                         onPressed: () {
-                                          // ดูรายละเอียดเพิ่มเติม
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  Detail(item: item),
+                                            ),
+                                          );
                                         },
                                         icon: const Icon(Icons.info,
                                             color: Colors.white),

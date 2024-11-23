@@ -20,10 +20,11 @@ class _LoginState extends State<Login> {
   TextEditingController password = TextEditingController();
 
   bool _obscurePassword = true; // กำหนดให้รหัสผ่านไม่แสดงเริ่มต้น
+  String? userName; // ตัวแปรสำหรับเก็บชื่อผู้ใช้/////////
+
   Future sign_in() async {
-    // เปลี่ยน URL เป็น URL ของ login.php
     String url =
-        "http://www.comdept.cmru.ac.th/64143168/hotel_app_php/login.php"; // เปลี่ยน URL นี้ตามที่คุณใช้
+        "http://www.comdept.cmru.ac.th/64143168/hotel_app_php/login.php";
     final response = await http.post(Uri.parse(url), body: {
       'email': email.text,
       'password': password.text,
@@ -51,13 +52,22 @@ class _LoginState extends State<Login> {
         },
       );
     } else if (data['status'] == "success") {
-      // ถ้าล็อกอินสำเร็จ
+      setState(() {
+        userName = data['name']; // เก็บชื่อผู้ใช้จาก API
+      });
+      // ไปยังหน้า Homepage พร้อมแสดงชื่อ
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => Homepage(),
+          builder: (context) => Homepage(name: userName!), // ส่งชื่อไปหน้า Home
         ),
       );
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => Homepage(),
+      //   ),
+      // );
     }
   }
 
