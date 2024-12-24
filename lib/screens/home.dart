@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:app1/screens/detail.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async'; // เพิ่ม import สำหรับ Timer
 
-import '../color.dart';
+import '../constant/color.dart';
+import '../constant/drawer.dart';
 import 'login.dart';
 
 class Homepage extends StatefulWidget {
@@ -19,6 +21,7 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   String? uesrname;
+  String? role;
   String? selectedType = 'ทั้งหมด';
   String? selectedStatus = 'ทั้งหมด';
   int currentPage = 1;
@@ -31,6 +34,10 @@ class _HomepageState extends State<Homepage> {
     'กำลังดำเนินการ',
     'เสร็จสิ้น'
   ];
+
+  List<dynamic> reports = [];
+  List<dynamic> previousReports = []; // เก็บข้อมูล reports ก่อนหน้า
+  Timer? pollingTimer; // ตัวแปรสำหรับ Timer
 
   Future<List<dynamic>> allReport() async {
     var url = "http://www.comdept.cmru.ac.th/64143168/hotel_app_php/report.php";
@@ -75,113 +82,60 @@ class _HomepageState extends State<Homepage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       uesrname = prefs.getString('name'); // ดึงค่าชื่อผู้ใช้
+      role = prefs.getString('role');
     });
+  }
+
+  void startPolling() {
+    // สร้าง Timer เพื่อดึงข้อมูลซ้ำ ๆ
+    pollingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      fetchReports();
+    });
+    fetchReports(); // ดึงข้อมูลทันทีเมื่อเริ่มต้น
+  }
+
+  Future<void> fetchReports() async {
+    try {
+      List<dynamic> newReports = await allReport();
+
+      // ตรวจสอบว่ามีรายการใหม่จริง ๆ หรือไม่
+      bool hasNewReport = newReports.length > previousReports.length;
+
+      if (hasNewReport) {
+        // แสดง SnackBar เฉพาะเมื่อมีรายการใหม่
+        if (previousReports.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('มีรายการแจ้งซ่อมใหม่!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
+        // อัปเดตข้อมูล reports และ previousReports
+        setState(() {
+          reports = newReports;
+          previousReports = List.from(newReports); // คัดลอกข้อมูลใหม่ไปเก็บ
+        });
+      }
+    } catch (e) {
+      print("Error fetching reports: $e");
+    }
   }
 
   @override
   void initState() {
     super.initState();
     _loadUserName(); // โหลดข้อมูลก่อนแสดงผล
+    startPolling(); // เริ่มต้นการดึงข้อมูลแบบ Periodic Polling
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Drawer(
-        child: Column(
-          children: [
-            // ส่วนหัว Drawer
-            Container(
-              decoration: BoxDecoration(
-                color: Color(0xFF547093), // สีพื้นหลัง
-              ),
-              child: SizedBox(
-                width: double.infinity, // ขยายเต็มความกว้าง
-                child: Padding(
-                  padding: EdgeInsets.only(top: 40, bottom: 20),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 80, // ขนาดของรูปโปรไฟล์
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle, // รูปแบบวงกลม
-                          image: DecorationImage(
-                            image: AssetImage('assets/img/runnerx.png'),
-                            fit: BoxFit.cover, // ปรับรูปให้เต็มพื้นที่
-                          ),
-                          border: Border.all(
-                            color: Colors.white, // ขอบสีขาว
-                            width: 2, // ความหนาของขอบ
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        uesrname ?? '',
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontFamily: Font_.Fonts_T,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // ส่วนรายการเมนู
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.home, color: Colors.black),
-                    title: Text(
-                      'หน้าหลัก',
-                      style: TextStyle(fontFamily: Font_.Fonts_T, fontSize: 16),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      // Action สำหรับเมนู "หน้าหลัก"
-                    },
-                  ),
-                  Divider(),
-                  ListTile(
-                    leading: Icon(Icons.list, color: Colors.black),
-                    title: Text(
-                      'รายการการแจ้งซ่อม',
-                      style: TextStyle(fontFamily: Font_.Fonts_T, fontSize: 16),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      // Action สำหรับเมนู "รายการการแจ้งซ่อม"
-                    },
-                  ),
-                ],
-              ),
-            ),
-            // ส่วนท้าย
-            Container(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Divider(),
-                  Text(
-                    '© 2024 The Kannas Hotel Chiangmai',
-                    style: TextStyle(
-                      fontFamily: Font_.Fonts_T,
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      drawer: CustomDrawer(
+        username: uesrname, // ส่งค่าชื่อผู้ใช้ไปยัง CustomDrawer
+        role: role,
       ),
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -282,6 +236,7 @@ class _HomepageState extends State<Homepage> {
             ),
             const SizedBox(height: 20),
             Expanded(
+              flex: 8,
               child: FutureBuilder<List<dynamic>>(
                 future: allReport(),
                 builder: (BuildContext context,

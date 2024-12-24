@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../color.dart';
+import '../constant/color.dart';
 import 'home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -52,25 +52,44 @@ class _LoginState extends State<Login> {
         },
       );
     } else if (data['status'] == "success") {
-      print("Name from API: ${data['name']}"); // ตรวจสอบค่าที่ได้จาก API
-      // บันทึกชื่อผู้ใช้ลงใน shared_preferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('name', data['name']); // บันทึกค่าชื่อผู้ใช้
-
-      // ไปยังหน้า Homepage
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              const Homepage(), // ไม่ต้องส่งชื่อผ่าน constructor
-        ),
-      );
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (context) => Homepage(),
-      //   ),
-      // );
+      // print("Name from API: ${data['name']}"); // ตรวจสอบค่าที่ได้จาก API
+      String role = data['role']; // รับค่า role จาก API
+      if (role == "technician") {
+        // บันทึกชื่อผู้ใช้ลงใน shared_preferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setString('email', email.text);
+        await prefs.setString('name', data['name']); // บันทึกค่าชื่อผู้ใช้
+        await prefs.setString('role', data['role']); // บันทึกค่าชื่อผู้ใช้
+        // ไปยังหน้า Homepage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                const Homepage(), // ไม่ต้องส่งชื่อผ่าน constructor
+          ),
+        );
+      } else {
+        // แสดงข้อความเมื่อ role ไม่ใช่ admin หรือ staff
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Access Denied'),
+              content:
+                  Text('This account does not have the required permissions.'),
+              actions: [
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     }
   }
 

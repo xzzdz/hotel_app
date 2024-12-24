@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../color.dart';
+import '../constant/color.dart';
 
 class Detail extends StatefulWidget {
   final dynamic item; // ข้อมูลที่ส่งเข้ามา อาจเป็น Map หรือ Object
