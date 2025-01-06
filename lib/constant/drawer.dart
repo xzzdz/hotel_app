@@ -2,8 +2,6 @@ import 'package:app1/constant/color.dart';
 import 'package:app1/screens/home.dart';
 import 'package:flutter/material.dart';
 
-import '../screens/nonti.dart';
-
 class CustomDrawer extends StatelessWidget {
   final String? username; // ชื่อผู้ใช้ที่จะแสดง
   final String? role;
@@ -98,23 +96,23 @@ class CustomDrawer extends StatelessWidget {
                     );
                   },
                 ),
-                ListTile(
-                  leading: Icon(Icons.notifications, color: Colors.black),
-                  title: Text(
-                    'การแจ้งเตือน',
-                    style: TextStyle(
-                      fontFamily: Font_.Fonts_T,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const Nonti(),
-                      ),
-                    );
-                  },
-                ),
+                // ListTile(
+                //   leading: Icon(Icons.notifications, color: Colors.black),
+                //   title: Text(
+                //     'การแจ้งเตือน',
+                //     style: TextStyle(
+                //       fontFamily: Font_.Fonts_T,
+                //     ),
+                //   ),
+                //   onTap: () {
+                //     Navigator.pushReplacement(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (context) => const (),
+                //       ),
+                //     );
+                //   },
+                // ),
               ],
             ),
           ),

@@ -64,9 +64,9 @@ class _HomepageState extends State<Homepage> {
   Color getStatusColor(String status) {
     switch (status) {
       case "รอดำเนินการ":
-        return Colors.red[300]!;
-      case "กำลังดำเนินการ":
         return Colors.orange[300]!;
+      case "กำลังดำเนินการ":
+        return Colors.blue[300]!;
       default:
         return Colors.green[300]!;
     }
@@ -82,13 +82,13 @@ class _HomepageState extends State<Homepage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       uesrname = prefs.getString('name'); // ดึงค่าชื่อผู้ใช้
-      role = prefs.getString('role');
+      role = prefs.getString('role'); // ดึงตำแหน้งผู้ใช้
     });
   }
 
   void startPolling() {
     // สร้าง Timer เพื่อดึงข้อมูลซ้ำ ๆ
-    pollingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    pollingTimer = Timer.periodic(const Duration(seconds: 20), (timer) {
       fetchReports();
     });
     fetchReports(); // ดึงข้อมูลทันทีเมื่อเริ่มต้น
@@ -97,11 +97,13 @@ class _HomepageState extends State<Homepage> {
   Future<void> fetchReports() async {
     try {
       List<dynamic> newReports = await allReport();
+      // print('Fetched new reports: $newReports'); // ตรวจสอบข้อมูลที่ดึงมา
 
       // ตรวจสอบว่ามีรายการใหม่จริง ๆ หรือไม่
       bool hasNewReport = newReports.length > previousReports.length;
 
       if (hasNewReport) {
+        print('New reports available');
         // แสดง SnackBar เฉพาะเมื่อมีรายการใหม่
         if (previousReports.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -407,6 +409,31 @@ class _HomepageState extends State<Homepage> {
                                         ),
                                       ],
                                     ),
+                                    // เงื่อนไขสำหรับการแสดงเมนูจัดการผู้ใช้งาน
+                                    if (item['assigned_to'] != null) ...[
+                                      const SizedBox(height: 10),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.person,
+                                              color: Colors.grey),
+                                          const SizedBox(width: 5),
+                                          Expanded(
+                                            child: Text(
+                                              "ผู้รับงาน: ${item['assigned_to']}",
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontFamily: Font_.Fonts_T,
+                                                color: Color.fromARGB(
+                                                    255, 73, 72, 72),
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+
                                     const SizedBox(height: 10),
                                     Align(
                                       alignment: Alignment.centerRight,
@@ -462,14 +489,14 @@ class _HomepageState extends State<Homepage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Logout'),
-          content: Text('you want to logout?'),
+          title: Text('ออกจากระบบ'),
+          content: Text('คุณแน่ใจว่าต้องการออกจากระบบ?'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // ปิด dialog
               },
-              child: Text('cancel'),
+              child: Text('ยกเลิก'),
             ),
             TextButton(
               onPressed: () async {
@@ -484,7 +511,7 @@ class _HomepageState extends State<Homepage> {
                   ),
                 );
               },
-              child: Text('confirm'),
+              child: Text('ออกจากระบบ'),
             ),
           ],
         );

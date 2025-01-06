@@ -38,11 +38,12 @@ class _LoginState extends State<Login> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Login Failed'),
-            content: Text(data['message']), // ข้อความผิดพลาดจาก PHP
+            title: Text('ไม่สามารถเข้าสู่ระบบได้'),
+            content:
+                Text('อีเมลหรือรหัสผ่านไม่ถูกต้อง'), // ข้อความผิดพลาดจาก PHP
             actions: [
               TextButton(
-                child: Text('OK'),
+                child: Text('ตกลง'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -54,7 +55,7 @@ class _LoginState extends State<Login> {
     } else if (data['status'] == "success") {
       // print("Name from API: ${data['name']}"); // ตรวจสอบค่าที่ได้จาก API
       String role = data['role']; // รับค่า role จาก API
-      if (role == "technician") {
+      if (role == "ช่างซ่อม") {
         // บันทึกชื่อผู้ใช้ลงใน shared_preferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
@@ -75,12 +76,11 @@ class _LoginState extends State<Login> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Access Denied'),
-              content:
-                  Text('This account does not have the required permissions.'),
+              title: Text('การเข้าถึงถูกปฏิเสธ'),
+              content: Text('คุณไม่มีสิทธิ์ในการเข้าถึงหน้านี้'),
               actions: [
                 TextButton(
-                  child: Text('OK'),
+                  child: Text('ตกลง'),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -98,14 +98,14 @@ class _LoginState extends State<Login> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Forgot your password?'),
-          content: Text('Please contact the admin.'),
+          title: Text('ลืมรหัสผ่าน?'),
+          content: Text('กรุณาติดต่อผู้ดูแลระบบ'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // ปิด dialog
               },
-              child: Text('Comfirm'),
+              child: Text('ตกลง'),
             ),
           ],
         );
@@ -133,7 +133,7 @@ class _LoginState extends State<Login> {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    'To continue using this app',
+                    'หากต้องการใช้แอพนี้ต่อไป',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey,
@@ -142,7 +142,7 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                   Text(
-                    'Please sign in first.',
+                    'กรุณาลงชื่อเข้าใช้',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey,
@@ -160,7 +160,7 @@ class _LoginState extends State<Login> {
                       ),
                       decoration: InputDecoration(
                         prefixIcon: Icon(Icons.person, color: Colors.black),
-                        hintText: "E-mail",
+                        hintText: "ชื่อผู้ใช้งาน",
                         hintStyle: TextStyle(
                           color: Colors.black12,
                           fontFamily: Font_.Fonts_T,
@@ -179,7 +179,7 @@ class _LoginState extends State<Login> {
                       ),
                       validator: (val) {
                         if (val!.isEmpty) {
-                          return 'Please enter your E-Mail';
+                          return 'กรุณากรอกชื่อผู้ใช้งาน';
                         }
                         return null;
                       },
@@ -195,7 +195,7 @@ class _LoginState extends State<Login> {
                       ),
                       decoration: InputDecoration(
                         prefixIcon: Icon(Icons.key, color: Colors.black),
-                        hintText: "Password",
+                        hintText: "รหัสผ่าน",
                         hintStyle: TextStyle(
                           color: Colors.black12,
                           fontFamily: Font_.Fonts_T,
@@ -228,7 +228,7 @@ class _LoginState extends State<Login> {
                       ),
                       validator: (val) {
                         if (val!.isEmpty) {
-                          return 'Please enter your Password';
+                          return 'กรุณากรอกรหัสผ่าน';
                         }
                         return null;
                       },
@@ -240,11 +240,11 @@ class _LoginState extends State<Login> {
 
                   // const SizedBox(height: 20),
                   Padding(
-                    padding: const EdgeInsets.only(left: 140),
+                    padding: const EdgeInsets.only(left: 200),
                     child: TextButton(
                       onPressed: forgetpass,
                       child: Text(
-                        'Forgot your password?',
+                        'ลืมรหัสผ่าน ?',
                         style: TextStyle(color: Colors.grey),
                       ),
                     ),
@@ -269,7 +269,7 @@ class _LoginState extends State<Login> {
                           }
                         },
                         child: const Text(
-                          'Sign in',
+                          'เข้าสู่ระบบ',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
