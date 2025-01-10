@@ -2,6 +2,8 @@ import 'package:app1/constant/color.dart';
 import 'package:app1/screens/home.dart';
 import 'package:flutter/material.dart';
 
+import '../screens/profile.dart';
+
 class CustomDrawer extends StatelessWidget {
   final String? username; // ชื่อผู้ใช้ที่จะแสดง
   final String? role;
@@ -80,7 +82,7 @@ class CustomDrawer extends StatelessWidget {
               padding: EdgeInsets.zero,
               children: [
                 ListTile(
-                  leading: Icon(Icons.list, color: Colors.black),
+                  leading: Icon(Icons.list, color: Colors.black87),
                   title: Text(
                     'รายการแจ้งซ่อม',
                     style: TextStyle(
@@ -96,23 +98,23 @@ class CustomDrawer extends StatelessWidget {
                     );
                   },
                 ),
-                // ListTile(
-                //   leading: Icon(Icons.notifications, color: Colors.black),
-                //   title: Text(
-                //     'การแจ้งเตือน',
-                //     style: TextStyle(
-                //       fontFamily: Font_.Fonts_T,
-                //     ),
-                //   ),
-                //   onTap: () {
-                //     Navigator.pushReplacement(
-                //       context,
-                //       MaterialPageRoute(
-                //         builder: (context) => const (),
-                //       ),
-                //     );
-                //   },
-                // ),
+                ListTile(
+                  leading: Icon(Icons.person, color: Colors.black87),
+                  title: Text(
+                    'ข้อมูลส่วนตัว',
+                    style: TextStyle(
+                      fontFamily: Font_.Fonts_T,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Profile(),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),

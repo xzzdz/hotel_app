@@ -19,6 +19,7 @@ class _DetailState extends State<Detail> {
   String? currentStatus; // สถานะปัจจุบัน
   String? assignedTo; // ชื่อผู้รับงาน
   String? username;
+  String? location; // เพิ่มตัวแปรสำหรับสถานที่
 
   @override
   void initState() {
@@ -51,6 +52,7 @@ class _DetailState extends State<Detail> {
           currentStatus = data['report']['status']; // อัปเดตสถานะ
           assignedTo = data['report']['assigned_to']; // อัปเดตชื่อผู้รับงาน
           username = data['report']['username']; // ดึงข้อมูล username
+          location = data['report']['location']; // ดึงข้อมูล location
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -139,6 +141,7 @@ class _DetailState extends State<Detail> {
                 _buildDetailRow('รหัสแจ้งซ่อม:', widget.item['id'] ?? '-'),
                 _buildDetailRow('ผู้แจ้ง', username ?? '-'), // ใช้ username
                 _buildDetailRow('ประเภท:', widget.item['type'] ?? '-'),
+                _buildDetailRow('สถานที่', location ?? '-'), // แสดงสถานที่
                 _buildDetailRow('รายละเอียด:', widget.item['detail'] ?? '-'),
                 _buildDetailRow('สถานะ:', currentStatus ?? '-'),
                 _buildDetailRow('วันที่แจ้ง:', widget.item['date'] ?? '-'),

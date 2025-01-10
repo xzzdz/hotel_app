@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:app1/screens/detail.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,17 +22,19 @@ class Homepage extends StatefulWidget {
 class _HomepageState extends State<Homepage> {
   String? uesrname;
   String? role;
+  String? email;
   String? selectedType = 'ทั้งหมด';
   String? selectedStatus = 'ทั้งหมด';
   int currentPage = 1;
   final int itemsPerPage = 5;
+  bool filterByAssigned = false; // ใช้เก็บสถานะการกรอง
 
   List<String> types = ['ทั้งหมด', 'ไฟฟ้า', 'ประปา', 'สวน', 'แอร์', 'อื่นๆ'];
   List<String> statuses = [
     'ทั้งหมด',
     'รอดำเนินการ',
     'กำลังดำเนินการ',
-    'เสร็จสิ้น'
+    'เสร็จสิ้น',
   ];
 
   List<dynamic> reports = [];
@@ -83,6 +85,7 @@ class _HomepageState extends State<Homepage> {
     setState(() {
       uesrname = prefs.getString('name'); // ดึงค่าชื่อผู้ใช้
       role = prefs.getString('role'); // ดึงตำแหน้งผู้ใช้
+      email = prefs.getString('email'); // ดึงตำแหน้งผู้ใช้
     });
   }
 
@@ -255,10 +258,13 @@ class _HomepageState extends State<Homepage> {
                   }
 
                   final filteredData = snapshot.data!.where((item) {
-                    return (selectedType == 'ทั้งหมด' ||
-                            item['type'] == selectedType) &&
-                        (selectedStatus == 'ทั้งหมด' ||
-                            item['status'] == selectedStatus);
+                    final matchesType = selectedType == 'ทั้งหมด' ||
+                        item['type'] == selectedType;
+                    final matchesStatus = selectedStatus == 'ทั้งหมด' ||
+                        item['status'] == selectedStatus;
+                    final matchesAssigned =
+                        !filterByAssigned || item['assigned_to'] == uesrname;
+                    return matchesType && matchesStatus && matchesAssigned;
                   }).toList();
 
                   final pageCount = (filteredData.length / itemsPerPage).ceil();
@@ -305,7 +311,27 @@ class _HomepageState extends State<Homepage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Checkbox(
+                            value: filterByAssigned,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                filterByAssigned = value ?? false;
+                              });
+                            },
+                          ),
+                          const Text(
+                            "แสดงเฉพาะงานที่ฉันรับ",
+                            style: TextStyle(
+                              fontFamily: Font_.Fonts_T,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // const SizedBox(height: 10),
                       Expanded(
                         child: ListView.builder(
                           itemCount: paginatedData.length,
@@ -489,8 +515,8 @@ class _HomepageState extends State<Homepage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('ออกจากระบบ'),
-          content: Text('คุณแน่ใจว่าต้องการออกจากระบบ?'),
+          title: Text('ยืนยันการออกจากระบบ'),
+          content: Text('คุณต้องการออกจากระบบหรือไม่?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -511,7 +537,7 @@ class _HomepageState extends State<Homepage> {
                   ),
                 );
               },
-              child: Text('ออกจากระบบ'),
+              child: Text('ยืนยัน'),
             ),
           ],
         );

@@ -39,11 +39,11 @@ class _LoginState extends State<Login> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('ไม่สามารถเข้าสู่ระบบได้'),
-            content:
-                Text('อีเมลหรือรหัสผ่านไม่ถูกต้อง'), // ข้อความผิดพลาดจาก PHP
+            content: Text(
+                'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง'), // ข้อความผิดพลาดจาก PHP
             actions: [
               TextButton(
-                child: Text('ตกลง'),
+                child: Text('ยืนยัน'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -62,6 +62,7 @@ class _LoginState extends State<Login> {
         await prefs.setString('email', email.text);
         await prefs.setString('name', data['name']); // บันทึกค่าชื่อผู้ใช้
         await prefs.setString('role', data['role']); // บันทึกค่าชื่อผู้ใช้
+        await prefs.setString('email', data['email']); // บันทึกค่าชื่อผู้ใช้
         // ไปยังหน้า Homepage
         Navigator.pushReplacement(
           context,
@@ -77,10 +78,10 @@ class _LoginState extends State<Login> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('การเข้าถึงถูกปฏิเสธ'),
-              content: Text('คุณไม่มีสิทธิ์ในการเข้าถึงหน้านี้'),
+              content: Text('ชื่อผู้ใช้งานนี้ไม่มีสิทธิ์ในการเข้าถึงหน้านี้'),
               actions: [
                 TextButton(
-                  child: Text('ตกลง'),
+                  child: Text('ยืนยัน'),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -105,7 +106,7 @@ class _LoginState extends State<Login> {
               onPressed: () {
                 Navigator.of(context).pop(); // ปิด dialog
               },
-              child: Text('ตกลง'),
+              child: Text('ยืนยัน'),
             ),
           ],
         );
@@ -128,12 +129,12 @@ class _LoginState extends State<Login> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Image.asset(
-                    'assets/img/2.png',
+                    'assets/img/111.png',
                     width: 300,
                   ),
-                  const SizedBox(height: 5),
+                  // const SizedBox(height: 5),
                   Text(
-                    'หากต้องการใช้แอพนี้ต่อไป',
+                    'แอปพลิเคชันระบบแจ้งซ่อม',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey,
@@ -142,7 +143,7 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                   Text(
-                    'กรุณาลงชื่อเข้าใช้',
+                    'โรงแรมเดอะแคนนาส เชียงใหม่',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey,
