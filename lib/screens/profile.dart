@@ -18,9 +18,11 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  String? uesrname;
+  String? username;
   String? role;
   String? email;
+  String? userId; // ตัวแปรเก็บ ID ผู้ใช้ที่ล็อกอิน
+
   bool _obscureText = true;
 
   List<dynamic> users = [];
@@ -41,7 +43,7 @@ class _ProfileState extends State<Profile> {
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      print("API response: $data"); // พิมพ์ข้อมูลที่ได้รับจาก API
+      // print("API response: $data"); // พิมพ์ข้อมูลที่ได้รับจาก API
       if (data['status'] == 'success') {
         setState(() {
           // ใช้ data['data'] แทนที่จะเป็น data['users']
@@ -62,7 +64,7 @@ class _ProfileState extends State<Profile> {
     // สร้าง body สำหรับส่งข้อมูล
     final Map<String, String> body = {
       'id': id,
-      'name': nameController.text.trim(),
+      'name': username ?? '',
       'email': emailController.text.trim(),
       'role': role ?? '', // ใช้ role ที่ได้จาก _loadUserName
     };
@@ -100,10 +102,12 @@ class _ProfileState extends State<Profile> {
   Future<void> _loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      uesrname = prefs.getString('name'); // ดึงค่าชื่อผู้ใช้
+      userId = prefs.getString('id'); // ดึง ID ผู้ใช้
+      username = prefs.getString('name'); // ดึงค่าชื่อผู้ใช้
       role = prefs.getString('role'); // ดึงตำแหน่งผู้ใช้
       email = prefs.getString('email'); // ดึงอีเมลผู้ใช้
       roleController.text = role ?? ''; // กำหนดตำแหน่งให้ในฟอร์ม
+      nameController.text = username ?? ''; // กำหนดตำแหน่งให้ในฟอร์ม
     });
   }
 
@@ -117,7 +121,7 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: CustomDrawer(
-        username: uesrname, // ส่งค่าชื่อผู้ใช้ไปยัง CustomDrawer
+        username: username, // ส่งค่าชื่อผู้ใช้ไปยัง CustomDrawer
         role: role,
       ),
       backgroundColor: const Color(0xFFF5F5F5),
@@ -194,7 +198,7 @@ class _ProfileState extends State<Profile> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      uesrname ?? '-',
+                      username ?? '-',
                       style: const TextStyle(
                         fontFamily: Font_.Fonts_T,
                         fontSize: 16,
@@ -260,24 +264,24 @@ class _ProfileState extends State<Profile> {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // ชื่อผู้ใช้งาน
-                                    TextFormField(
-                                      controller: nameController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'ชื่อ - นามสกุล',
-                                        hintText: 'ใส่ชื่อ - นามสกุล',
-                                        border: UnderlineInputBorder(),
-                                      ),
-                                      validator: (value) {
-                                        if (value == null ||
-                                            value.trim().isEmpty) {
-                                          return 'กรุณาใส่ชื่อ - นามสกุล';
-                                        }
-                                        return null;
-                                      },
-                                    ),
+                                    // // ชื่อผู้ใช้งาน
+                                    // TextFormField(
+                                    //   controller: nameController,
+                                    //   decoration: const InputDecoration(
+                                    //     labelText: 'ชื่อ - นามสกุล',
+                                    //     hintText: 'ใส่ชื่อ - นามสกุล',
+                                    //     border: UnderlineInputBorder(),
+                                    //   ),
+                                    //   validator: (value) {
+                                    //     if (value == null ||
+                                    //         value.trim().isEmpty) {
+                                    //       return 'กรุณาใส่ชื่อ - นามสกุล';
+                                    //     }
+                                    //     return null;
+                                    //   },
+                                    // ),
 
-                                    const SizedBox(height: 8.0),
+                                    // const SizedBox(height: 8.0),
 
                                     // อีเมลผู้ใช้งาน
                                     TextFormField(
@@ -298,17 +302,17 @@ class _ProfileState extends State<Profile> {
 
                                     const SizedBox(height: 8.0),
 
-                                    // ตำแหน่งงานผู้ใช้งาน (ไม่สามารถเลือกได้)
-                                    TextFormField(
-                                      controller: roleController,
-                                      readOnly: true, // ปิดไม่ให้เลือก
-                                      decoration: const InputDecoration(
-                                        labelText: 'ตำแหน่งงาน',
-                                        border: UnderlineInputBorder(),
-                                      ),
-                                    ),
+                                    // // // ตำแหน่งงานผู้ใช้งาน (ไม่สามารถเลือกได้)
+                                    // TextFormField(
+                                    //   controller: roleController,
+                                    //   readOnly: true, // ปิดไม่ให้เลือก
+                                    //   decoration: const InputDecoration(
+                                    //     labelText: 'ตำแหน่งงาน',
+                                    //     border: UnderlineInputBorder(),
+                                    //   ),
+                                    // ),
 
-                                    const SizedBox(height: 8.0),
+                                    // const SizedBox(height: 8.0),
 
                                     // รหัสผ่านใหม่
                                     TextFormField(
@@ -346,9 +350,11 @@ class _ProfileState extends State<Profile> {
                                     // ตรวจสอบว่าฟอร์มถูกต้องหรือไม่
                                     if (formKey.currentState!.validate()) {
                                       // ส่งข้อมูลไปแก้ไข
-
-                                      editUser(users[0]['id']);
-                                      // Navigator.of(context).pop();
+                                      if (userId != null) {
+                                        await editUser(userId!);
+                                      } else {
+                                        print("User ID is null");
+                                      }
                                       Navigator.of(context)
                                           .pop(); // ปิด dialog ก่อน
                                       SharedPreferences prefs =
@@ -364,6 +370,31 @@ class _ProfileState extends State<Profile> {
                                     }
                                   },
                                 ),
+
+                                // TextButton(
+                                //   child: const Text('บันทึก'),
+                                //   onPressed: () async {
+                                //     // ตรวจสอบว่าฟอร์มถูกต้องหรือไม่
+                                //     if (formKey.currentState!.validate()) {
+                                //       // ส่งข้อมูลไปแก้ไข
+                                //       editUser(userId!);
+
+                                //       // Navigator.of(context).pop();
+                                //       Navigator.of(context)
+                                //           .pop(); // ปิด dialog ก่อน
+                                //       SharedPreferences prefs =
+                                //           await SharedPreferences.getInstance();
+                                //       await prefs
+                                //           .clear(); // ลบข้อมูลทั้งหมด หรือใช้ prefs.remove('name') เพื่อลบเฉพาะค่า
+                                //       Navigator.pushReplacement(
+                                //         context,
+                                //         MaterialPageRoute(
+                                //           builder: (context) => const Login(),
+                                //         ),
+                                //       );
+                                //     }
+                                //   },
+                                // ),
                               ],
                             );
                           },

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:app1/screens/detail.dart';
-// import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,7 +20,7 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  String? uesrname;
+  String? username;
   String? role;
   String? email;
   String? selectedType = 'ทั้งหมด';
@@ -28,6 +28,8 @@ class _HomepageState extends State<Homepage> {
   int currentPage = 1;
   final int itemsPerPage = 5;
   bool filterByAssigned = false; // ใช้เก็บสถานะการกรอง
+  int assignedCount = 0; // ใช้เก็บจำนวนงานที่ผู้ใช้เป็นผู้รับผิดชอบ
+  String searchText = ''; // ตัวแปรสำหรับคำค้นหา
 
   List<String> types = ['ทั้งหมด', 'ไฟฟ้า', 'ประปา', 'สวน', 'แอร์', 'อื่นๆ'];
   List<String> statuses = [
@@ -83,9 +85,9 @@ class _HomepageState extends State<Homepage> {
   Future<void> _loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      uesrname = prefs.getString('name'); // ดึงค่าชื่อผู้ใช้
+      username = prefs.getString('name'); // ดึงค่าชื่อผู้ใช้
       role = prefs.getString('role'); // ดึงตำแหน้งผู้ใช้
-      email = prefs.getString('email'); // ดึงตำแหน้งผู้ใช้
+      email = prefs.getString('email'); // ดึงผู้ใช้งาน
     });
   }
 
@@ -139,7 +141,7 @@ class _HomepageState extends State<Homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: CustomDrawer(
-        username: uesrname, // ส่งค่าชื่อผู้ใช้ไปยัง CustomDrawer
+        username: username, // ส่งค่าชื่อผู้ใช้ไปยัง CustomDrawer
         role: role,
       ),
       backgroundColor: const Color(0xFFF5F5F5),
@@ -182,6 +184,26 @@ class _HomepageState extends State<Homepage> {
                 fontFamily: Font_.Fonts_T,
                 color: Color(0xFF37474F),
               ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              decoration: InputDecoration(
+                labelText: 'พิมพ์คำค้นหา',
+                labelStyle: const TextStyle(fontFamily: Font_.Fonts_T),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    setState(() {});
+                  },
+                ),
+              ),
+              onChanged: (value) {
+                searchText = value;
+                setState(() {});
+              },
             ),
             const SizedBox(height: 20),
             Row(
@@ -246,6 +268,21 @@ class _HomepageState extends State<Homepage> {
                 future: allReport(),
                 builder: (BuildContext context,
                     AsyncSnapshot<List<dynamic>> snapshot) {
+                  // ฟังก์ชันคำนวณจำนวนงานที่เกี่ยวข้องกับตัวกรองและชื่อผู้ใช้
+                  void updateAssignedCount() {
+                    setState(() {
+                      assignedCount = snapshot.data!.where((item) {
+                        final matchesType = selectedType == 'ทั้งหมด' ||
+                            item['type'] == selectedType;
+                        final matchesStatus = selectedStatus == 'ทั้งหมด' ||
+                            item['status'] == selectedStatus;
+                        final matchesAssigned = !filterByAssigned ||
+                            item['assigned_to'] == username;
+                        return matchesType && matchesStatus && matchesAssigned;
+                      }).length;
+                    });
+                  }
+
                   if (snapshot.hasError) {
                     return const Center(
                       child: Text("เกิดข้อผิดพลาดในการโหลดข้อมูล",
@@ -257,16 +294,51 @@ class _HomepageState extends State<Homepage> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
+                  // ฟิลเตอร์ข้อมูล
                   final filteredData = snapshot.data!.where((item) {
                     final matchesType = selectedType == 'ทั้งหมด' ||
                         item['type'] == selectedType;
                     final matchesStatus = selectedStatus == 'ทั้งหมด' ||
                         item['status'] == selectedStatus;
                     final matchesAssigned =
-                        !filterByAssigned || item['assigned_to'] == uesrname;
-                    return matchesType && matchesStatus && matchesAssigned;
+                        !filterByAssigned || item['assigned_to'] == username;
+                    final matchesSearch = searchText.isEmpty ||
+                        item['detail']
+                            .toString()
+                            .toLowerCase()
+                            .contains(searchText.toLowerCase()) ||
+                        item['location']
+                            .toString()
+                            .toLowerCase()
+                            .contains(searchText.toLowerCase()) ||
+                        item['date']
+                            .toString()
+                            .toLowerCase()
+                            .contains(searchText.toLowerCase()) ||
+                        item['type']
+                            .toString()
+                            .toLowerCase()
+                            .contains(searchText.toLowerCase()) ||
+                        item['status']
+                            .toString()
+                            .toLowerCase()
+                            .contains(searchText.toLowerCase());
+
+                    return matchesType &&
+                        matchesStatus &&
+                        matchesAssigned &&
+                        matchesSearch;
                   }).toList();
 
+                  // อัปเดตจำนวนงานเริ่มต้น
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    updateAssignedCount();
+                  });
+
+                  // คำนวณจำนวนงานที่ assigned ให้ผู้ใช้
+                  final userAssignedCount = snapshot.data!
+                      .where((item) => item['assigned_to'] == username)
+                      .length;
                   final pageCount = (filteredData.length / itemsPerPage).ceil();
                   final startIndex = (currentPage - 1) * itemsPerPage;
                   final endIndex =
@@ -317,13 +389,14 @@ class _HomepageState extends State<Homepage> {
                           Checkbox(
                             value: filterByAssigned,
                             onChanged: (bool? value) {
-                              setState(() {
-                                filterByAssigned = value ?? false;
-                              });
+                              filterByAssigned = value ?? false;
+                              updateAssignedCount(); // อัปเดตจำนวนงานเมื่อกด Checkbox
                             },
                           ),
-                          const Text(
-                            "แสดงเฉพาะงานที่ฉันรับ",
+                          Text(
+                            filterByAssigned
+                                ? 'แสดงเฉพาะงานที่ฉันรับ : $assignedCount งาน'
+                                : 'แสดงเฉพาะงานที่ฉันรับ',
                             style: TextStyle(
                               fontFamily: Font_.Fonts_T,
                               fontSize: 16,
@@ -446,6 +519,31 @@ class _HomepageState extends State<Homepage> {
                                           Expanded(
                                             child: Text(
                                               "ผู้รับงาน: ${item['assigned_to']}",
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontFamily: Font_.Fonts_T,
+                                                color: Color.fromARGB(
+                                                    255, 73, 72, 72),
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+
+                                    // เงื่อนไขสำหรับการแสดงสถานที่
+                                    if (item['location'] != null) ...[
+                                      const SizedBox(height: 10),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.location_on,
+                                              color: Colors.grey),
+                                          const SizedBox(width: 5),
+                                          Expanded(
+                                            child: Text(
+                                              "สถานที่: ${item['location']}",
                                               style: const TextStyle(
                                                 fontSize: 14,
                                                 fontFamily: Font_.Fonts_T,
