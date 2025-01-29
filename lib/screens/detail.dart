@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 
 import '../constant/color.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 
 class Detail extends StatefulWidget {
   final dynamic item; // ข้อมูลที่ส่งเข้ามา อาจเป็น Map หรือ Object
@@ -20,6 +23,7 @@ class _DetailState extends State<Detail> {
   String? assignedTo; // ชื่อผู้รับงาน
   String? username;
   String? location; // เพิ่มตัวแปรสำหรับสถานที่
+  String? imageUrl; // เพิ่มตัวแปรเพื่อเก็บ URL ของรูปภาพ
 
   @override
   void initState() {
@@ -53,6 +57,12 @@ class _DetailState extends State<Detail> {
           assignedTo = data['report']['assigned_to']; // อัปเดตชื่อผู้รับงาน
           username = data['report']['username']; // ดึงข้อมูล username
           location = data['report']['location']; // ดึงข้อมูล location
+          imageUrl = data['report']['image'] != null
+              ? "http://www.comdept.cmru.ac.th/64143168/hotel_app_php/${data['report']['image']}"
+              : null;
+
+          print('Response JSON: $data');
+          print('imageUrl: $imageUrl');
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -149,6 +159,8 @@ class _DetailState extends State<Detail> {
                 if (assignedTo != null && assignedTo!.isNotEmpty)
                   _buildDetailRow('ผู้รับงาน:', assignedTo ?? '-'),
                 const SizedBox(height: 20),
+                _buildImage(), // แสดงภาพที่โหลดจาก URL
+                const SizedBox(height: 20),
                 Align(
                   alignment: Alignment.center,
                   child: currentStatus == "รอดำเนินการ"
@@ -164,6 +176,42 @@ class _DetailState extends State<Detail> {
         ),
       ),
     );
+  }
+
+  Widget _buildImage() {
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return InkWell(
+        onTap: () async {
+          // เปิด URL ใน Chrome Custom Tab
+          try {
+            await launch(
+              imageUrl!,
+              // option: CustomTabsOption(
+              //   toolbarColor: bottoncolor, // เปลี่ยนสีของ toolbar
+              //   enableUrlBarHiding: true, // ซ่อน URL bar
+              //   enableDefaultShare: true, // เปิดการแชร์จาก Custom Tab
+              //   showPageTitle: true, // แสดงชื่อเพจ
+              // ),
+            );
+          } catch (e) {
+            throw 'ไม่สามารถเปิด URL ได้: $imageUrl';
+          }
+        },
+        child: Container(
+          padding: EdgeInsets.all(8),
+          child: Text(
+            'คลิกที่นี่เพื่อดูรูปภาพ',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.blue,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
+      );
+    } else {
+      return Center(child: Text('ไม่มีภาพให้แสดง'));
+    }
   }
 
   Widget _buildDetailRow(String label, String value) {
