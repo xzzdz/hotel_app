@@ -159,7 +159,10 @@ class _DetailState extends State<Detail> {
                 if (assignedTo != null && assignedTo!.isNotEmpty)
                   _buildDetailRow('ผู้รับงาน:', assignedTo ?? '-'),
                 const SizedBox(height: 20),
-                _buildImage(), // แสดงภาพที่โหลดจาก URL
+
+                if (imageUrl != null && imageUrl!.isNotEmpty)
+                  _buildImage(), // แสดงภาพที่โหลดจาก URL
+
                 const SizedBox(height: 20),
                 Align(
                   alignment: Alignment.center,

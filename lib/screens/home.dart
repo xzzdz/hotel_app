@@ -508,17 +508,18 @@ class _HomepageState extends State<Homepage> {
                                         ),
                                       ],
                                     ),
-                                    // เงื่อนไขสำหรับการแสดงเมนูจัดการผู้ใช้งาน
-                                    if (item['assigned_to'] != null) ...[
+
+                                    // เงื่อนไขสำหรับการแสดงสถานที่
+                                    if (item['location'] != null) ...[
                                       const SizedBox(height: 10),
                                       Row(
                                         children: [
-                                          const Icon(Icons.person,
+                                          const Icon(Icons.location_on,
                                               color: Colors.grey),
                                           const SizedBox(width: 5),
                                           Expanded(
                                             child: Text(
-                                              "ผู้รับงาน: ${item['assigned_to']}",
+                                              "สถานที่: ${item['location']}",
                                               style: const TextStyle(
                                                 fontSize: 14,
                                                 fontFamily: Font_.Fonts_T,
@@ -533,17 +534,17 @@ class _HomepageState extends State<Homepage> {
                                       ),
                                     ],
 
-                                    // เงื่อนไขสำหรับการแสดงสถานที่
-                                    if (item['location'] != null) ...[
+                                    // เงื่อนไขสำหรับการแสดงเมนูจัดการผู้ใช้งาน
+                                    if (item['assigned_to'] != null) ...[
                                       const SizedBox(height: 10),
                                       Row(
                                         children: [
-                                          const Icon(Icons.location_on,
+                                          const Icon(Icons.person,
                                               color: Colors.grey),
                                           const SizedBox(width: 5),
                                           Expanded(
                                             child: Text(
-                                              "สถานที่: ${item['location']}",
+                                              "ผู้รับงาน: ${item['assigned_to']}",
                                               style: const TextStyle(
                                                 fontSize: 14,
                                                 fontFamily: Font_.Fonts_T,
