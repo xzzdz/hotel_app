@@ -37,6 +37,7 @@ class _HomepageState extends State<Homepage> {
     'รอดำเนินการ',
     'กำลังดำเนินการ',
     'เสร็จสิ้น',
+    'ส่งซ่อมภายนอก',
   ];
 
   List<dynamic> reports = [];
@@ -60,8 +61,10 @@ class _HomepageState extends State<Homepage> {
         return Icons.hourglass_empty;
       case "กำลังดำเนินการ":
         return Icons.autorenew;
+      case "เสร็จสิ้น":
+        return Icons.check_circle;
       default:
-        return Icons.check_circle; // ไอคอนสําหรับสถานะ "เสร็จสิ้น"
+        return Icons.hardware; // ไอคอนสําหรับสถานะ "เสร็จสิ้น"
     }
   }
 
@@ -71,8 +74,10 @@ class _HomepageState extends State<Homepage> {
         return Colors.orange[300]!;
       case "กำลังดำเนินการ":
         return Colors.blue[300]!;
-      default:
+      case "เสร็จสิ้น":
         return Colors.green[300]!;
+      default:
+        return Colors.red[300]!;
     }
   }
 
@@ -320,6 +325,10 @@ class _HomepageState extends State<Homepage> {
                             .toLowerCase()
                             .contains(searchText.toLowerCase()) ||
                         item['status']
+                            .toString()
+                            .toLowerCase()
+                            .contains(searchText.toLowerCase()) ||
+                        item['assigned_to']
                             .toString()
                             .toLowerCase()
                             .contains(searchText.toLowerCase());

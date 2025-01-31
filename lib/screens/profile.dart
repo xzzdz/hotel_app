@@ -21,6 +21,7 @@ class _ProfileState extends State<Profile> {
   String? username;
   String? role;
   String? email;
+  String? tel;
   String? userId; // ตัวแปรเก็บ ID ผู้ใช้ที่ล็อกอิน
 
   bool _obscureText = true;
@@ -34,7 +35,9 @@ class _ProfileState extends State<Profile> {
   TextEditingController nameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController roleController = TextEditingController();
+  TextEditingController telController = TextEditingController();
 
   Future<void> fetchUsers() async {
     String url =
@@ -74,6 +77,10 @@ class _ProfileState extends State<Profile> {
       body['password'] = passwordController.text.trim();
     }
 
+    if (telController.text.isNotEmpty) {
+      body['tel'] = telController.text.trim();
+    }
+
     // Debug: พิมพ์ข้อมูลที่กำลังจะส่ง
     print("Request body: $body");
 
@@ -105,6 +112,7 @@ class _ProfileState extends State<Profile> {
       userId = prefs.getString('id'); // ดึง ID ผู้ใช้
       username = prefs.getString('name'); // ดึงค่าชื่อผู้ใช้
       role = prefs.getString('role'); // ดึงตำแหน่งผู้ใช้
+      tel = prefs.getString('tel');
       email = prefs.getString('email'); // ดึงอีเมลผู้ใช้
       roleController.text = role ?? ''; // กำหนดตำแหน่งให้ในฟอร์ม
       nameController.text = username ?? ''; // กำหนดตำแหน่งให้ในฟอร์ม
@@ -243,6 +251,25 @@ class _ProfileState extends State<Profile> {
                         color: Colors.black87,
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'เบอร์โทร:',
+                      style: TextStyle(
+                        fontFamily: Font_.Fonts_T,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      tel ?? '-',
+                      style: const TextStyle(
+                        fontFamily: Font_.Fonts_T,
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -253,8 +280,8 @@ class _ProfileState extends State<Profile> {
                     showDialog(
                       context: context,
                       builder: (context) {
-                        bool dialogObscureText =
-                            _obscureText; // ใช้ตัวแปรแยกใน dialog
+                        bool dialogObscureText = _obscureText;
+                        bool dialogConfirmObscureText = _obscureText;
                         return StatefulBuilder(
                           builder: (context, setDialogState) {
                             return AlertDialog(
@@ -264,25 +291,6 @@ class _ProfileState extends State<Profile> {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // // ชื่อผู้ใช้งาน
-                                    // TextFormField(
-                                    //   controller: nameController,
-                                    //   decoration: const InputDecoration(
-                                    //     labelText: 'ชื่อ - นามสกุล',
-                                    //     hintText: 'ใส่ชื่อ - นามสกุล',
-                                    //     border: UnderlineInputBorder(),
-                                    //   ),
-                                    //   validator: (value) {
-                                    //     if (value == null ||
-                                    //         value.trim().isEmpty) {
-                                    //       return 'กรุณาใส่ชื่อ - นามสกุล';
-                                    //     }
-                                    //     return null;
-                                    //   },
-                                    // ),
-
-                                    // const SizedBox(height: 8.0),
-
                                     // อีเมลผู้ใช้งาน
                                     TextFormField(
                                       controller: emailController,
@@ -301,18 +309,6 @@ class _ProfileState extends State<Profile> {
                                     ),
 
                                     const SizedBox(height: 8.0),
-
-                                    // // // ตำแหน่งงานผู้ใช้งาน (ไม่สามารถเลือกได้)
-                                    // TextFormField(
-                                    //   controller: roleController,
-                                    //   readOnly: true, // ปิดไม่ให้เลือก
-                                    //   decoration: const InputDecoration(
-                                    //     labelText: 'ตำแหน่งงาน',
-                                    //     border: UnderlineInputBorder(),
-                                    //   ),
-                                    // ),
-
-                                    // const SizedBox(height: 8.0),
 
                                     // รหัสผ่านใหม่
                                     TextFormField(
@@ -335,6 +331,74 @@ class _ProfileState extends State<Profile> {
                                           },
                                         ),
                                       ),
+                                      validator: (value) {
+                                        if (value == null ||
+                                            value.trim().isEmpty) {
+                                          return null; // ไม่จำเป็นต้องกรอกเบอร์โทรศัพท์
+                                        }
+                                        if (value.length < 6) {
+                                          return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+
+                                    const SizedBox(height: 8.0),
+
+// ยืนยันรหัสผ่าน
+                                    TextFormField(
+                                      controller: confirmPasswordController,
+                                      obscureText: dialogConfirmObscureText,
+                                      decoration: InputDecoration(
+                                        labelText: 'ยืนยันรหัสผ่านใหม่',
+                                        hintText: 'ใส่รหัสผ่านใหม่อีกครั้ง',
+                                        suffixIcon: IconButton(
+                                          icon: Icon(
+                                            dialogConfirmObscureText
+                                                ? Icons.visibility_off
+                                                : Icons.visibility,
+                                          ),
+                                          onPressed: () {
+                                            setDialogState(() {
+                                              dialogConfirmObscureText =
+                                                  !dialogConfirmObscureText;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      validator: (value) {
+                                        if (value == null ||
+                                            value.trim().isEmpty) {
+                                          return null; // ไม่จำเป็นต้องกรอกเบอร์โทรศัพท์
+                                        }
+                                        if (value != passwordController.text) {
+                                          return 'รหัสผ่านไม่ตรงกัน';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    TextFormField(
+                                      controller: telController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'เบอร์โทรศัพท์',
+                                        hintText: 'ใส่เบอร์โทรศัพท์',
+                                        border: UnderlineInputBorder(),
+                                      ),
+                                      keyboardType: TextInputType
+                                          .phone, // ตั้งค่าให้คีย์บอร์ดเป็นแบบเบอร์โทร
+                                      validator: (value) {
+                                        if (value == null ||
+                                            value.trim().isEmpty) {
+                                          return null; // ไม่จำเป็นต้องกรอกเบอร์โทรศัพท์
+                                        }
+                                        // ตรวจสอบว่าเป็นเบอร์โทรศัพท์จริง (10 หลักและเริ่มต้นด้วย 0)
+                                        final RegExp telRegex =
+                                            RegExp(r'^0[0-9]{9}$');
+                                        if (!telRegex.hasMatch(value.trim())) {
+                                          return 'กรุณาใส่เบอร์โทรศัพท์ที่ถูกต้อง (10 หลักและเริ่มต้นด้วย 0)';
+                                        }
+                                        return null;
+                                      },
                                     ),
                                   ],
                                 ),
@@ -347,20 +411,16 @@ class _ProfileState extends State<Profile> {
                                 TextButton(
                                   child: const Text('บันทึก'),
                                   onPressed: () async {
-                                    // ตรวจสอบว่าฟอร์มถูกต้องหรือไม่
                                     if (formKey.currentState!.validate()) {
-                                      // ส่งข้อมูลไปแก้ไข
                                       if (userId != null) {
                                         await editUser(userId!);
                                       } else {
                                         print("User ID is null");
                                       }
-                                      Navigator.of(context)
-                                          .pop(); // ปิด dialog ก่อน
+                                      Navigator.of(context).pop();
                                       SharedPreferences prefs =
                                           await SharedPreferences.getInstance();
-                                      await prefs
-                                          .clear(); // ลบข้อมูลทั้งหมด หรือใช้ prefs.remove('name') เพื่อลบเฉพาะค่า
+                                      await prefs.clear();
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
@@ -370,31 +430,6 @@ class _ProfileState extends State<Profile> {
                                     }
                                   },
                                 ),
-
-                                // TextButton(
-                                //   child: const Text('บันทึก'),
-                                //   onPressed: () async {
-                                //     // ตรวจสอบว่าฟอร์มถูกต้องหรือไม่
-                                //     if (formKey.currentState!.validate()) {
-                                //       // ส่งข้อมูลไปแก้ไข
-                                //       editUser(userId!);
-
-                                //       // Navigator.of(context).pop();
-                                //       Navigator.of(context)
-                                //           .pop(); // ปิด dialog ก่อน
-                                //       SharedPreferences prefs =
-                                //           await SharedPreferences.getInstance();
-                                //       await prefs
-                                //           .clear(); // ลบข้อมูลทั้งหมด หรือใช้ prefs.remove('name') เพื่อลบเฉพาะค่า
-                                //       Navigator.pushReplacement(
-                                //         context,
-                                //         MaterialPageRoute(
-                                //           builder: (context) => const Login(),
-                                //         ),
-                                //       );
-                                //     }
-                                //   },
-                                // ),
                               ],
                             );
                           },
@@ -402,12 +437,12 @@ class _ProfileState extends State<Profile> {
                       },
                     );
                   },
-                  backgroundColor: bottoncolor, // สีพื้นหลัง
+                  backgroundColor: bottoncolor,
                   child: const Icon(
-                    Icons.settings, // ไอคอนเครื่องหมาย "+"
+                    Icons.settings,
                     color: Colors.white,
                   ),
-                  tooltip: 'แก้ไขผู้ใช้', // ข้อความแสดงเมื่อวางเมาส์ (Desktop)
+                  tooltip: 'แก้ไขผู้ใช้',
                 ),
               ),
             ],

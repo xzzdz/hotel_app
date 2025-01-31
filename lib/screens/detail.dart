@@ -3,10 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 
 import '../constant/color.dart';
-import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 
 class Detail extends StatefulWidget {
   final dynamic item; // ข้อมูลที่ส่งเข้ามา อาจเป็น Map หรือ Object
@@ -22,6 +20,8 @@ class _DetailState extends State<Detail> {
   String? currentStatus; // สถานะปัจจุบัน
   String? assignedTo; // ชื่อผู้รับงาน
   String? username;
+  String? report_user_tel;
+  String? assigned_to_tel;
   String? location; // เพิ่มตัวแปรสำหรับสถานที่
   String? imageUrl; // เพิ่มตัวแปรเพื่อเก็บ URL ของรูปภาพ
 
@@ -57,6 +57,8 @@ class _DetailState extends State<Detail> {
           assignedTo = data['report']['assigned_to']; // อัปเดตชื่อผู้รับงาน
           username = data['report']['username']; // ดึงข้อมูล username
           location = data['report']['location']; // ดึงข้อมูล location
+          report_user_tel = data['report']['report_user_tel'];
+          assigned_to_tel = data['report']['assigned_to_tel'];
           imageUrl = data['report']['image'] != null
               ? "http://www.comdept.cmru.ac.th/64143168/hotel_app_php/${data['report']['image']}"
               : null;
@@ -149,7 +151,9 @@ class _DetailState extends State<Detail> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildDetailRow('รหัสแจ้งซ่อม:', widget.item['id'] ?? '-'),
-                _buildDetailRow('ผู้แจ้ง', username ?? '-'), // ใช้ username
+                _buildDetailRow(
+                    'ผู้แจ้งซ่อม:', username ?? '-'), // ใช้ username
+                _buildDetailRow('เบอร์โทรผู้แจ้งซ่อม:', report_user_tel ?? '-'),
                 _buildDetailRow('ประเภท:', widget.item['type'] ?? '-'),
                 _buildDetailRow('สถานที่', location ?? '-'), // แสดงสถานที่
                 _buildDetailRow('รายละเอียด:', widget.item['detail'] ?? '-'),
@@ -157,21 +161,34 @@ class _DetailState extends State<Detail> {
                 _buildDetailRow('วันที่แจ้ง:', widget.item['date'] ?? '-'),
 
                 if (assignedTo != null && assignedTo!.isNotEmpty)
-                  _buildDetailRow('ผู้รับงาน:', assignedTo ?? '-'),
+                  _buildDetailRow('ช่างซ่อม:', assignedTo ?? '-'),
+                _buildDetailRow('เบอร์โทรช่างซ่อม', assigned_to_tel ?? '-'),
                 const SizedBox(height: 20),
 
                 if (imageUrl != null && imageUrl!.isNotEmpty)
                   _buildImage(), // แสดงภาพที่โหลดจาก URL
 
                 const SizedBox(height: 20),
+
                 Align(
                   alignment: Alignment.center,
                   child: currentStatus == "รอดำเนินการ"
                       ? _buildActionButton("รับงาน", "กำลังดำเนินการ")
                       : currentStatus == "กำลังดำเนินการ" &&
                               assignedTo == currentUserName
-                          ? _buildActionButton("เสร็จสิ้น", "เสร็จสิ้น")
-                          : const SizedBox(),
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _buildActionButton("เสร็จสิ้น", "เสร็จสิ้น"),
+                                const SizedBox(width: 8), // ระยะห่างระหว่างปุ่ม
+                                _buildActionButtonrepair(
+                                    "ส่งซ่อมภายนอก", "ส่งซ่อมภายนอก"),
+                              ],
+                            )
+                          : currentStatus == "ส่งซ่อมภายนอก" &&
+                                  assignedTo == currentUserName
+                              ? _buildActionButton("เสร็จสิ้น", "เสร็จสิ้น")
+                              : const SizedBox(),
                 ),
               ],
             ),
@@ -255,6 +272,25 @@ class _DetailState extends State<Detail> {
     return ElevatedButton.icon(
       onPressed: () => _updateStatus(newStatus),
       icon: const Icon(Icons.check, color: Colors.white),
+      label: Text(label,
+          style: const TextStyle(
+            fontFamily: Font_.Fonts_T,
+            color: Colors.white,
+            fontSize: 16,
+          )),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: bottoncolor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtonrepair(String label, String newStatus) {
+    return ElevatedButton.icon(
+      onPressed: () => _updateStatus(newStatus),
+      icon: const Icon(Icons.hardware, color: Colors.white),
       label: Text(label,
           style: const TextStyle(
             fontFamily: Font_.Fonts_T,
