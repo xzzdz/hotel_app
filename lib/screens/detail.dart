@@ -162,7 +162,9 @@ class _DetailState extends State<Detail> {
 
                 if (assignedTo != null && assignedTo!.isNotEmpty)
                   _buildDetailRow('ช่างซ่อม:', assignedTo ?? '-'),
-                _buildDetailRow('เบอร์โทรช่างซ่อม', assigned_to_tel ?? '-'),
+
+                if (assignedTo != null && assignedTo!.isNotEmpty)
+                  _buildDetailRow('เบอร์โทรช่างซ่อม', assigned_to_tel ?? '-'),
                 const SizedBox(height: 20),
 
                 if (imageUrl != null && imageUrl!.isNotEmpty)
