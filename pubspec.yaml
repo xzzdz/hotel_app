@@ -39,11 +39,17 @@ dependencies:
   shared_preferences: ^2.3.3
   url_launcher: ^6.3.1
   flutter_custom_tabs:
+  animated_splash_screen: 
+  flutter_launcher_icons: 
   
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/img/111.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

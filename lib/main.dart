@@ -1,3 +1,4 @@
+import 'package:app1/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       // ตรวจสอบสถานะ: ถ้าล็อกอินแล้วไป Homepage ถ้ายังให้ไป Login
-      home: isLoggedIn ? const Homepage() : const Login(),
+      home: isLoggedIn ? const Homepage() : const SplashScreen(),
     );
   }
 }
