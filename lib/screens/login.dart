@@ -65,6 +65,7 @@ class _LoginState extends State<Login> {
         await prefs.setString('email', data['email']); // บันทึกค่าชื่อผู้ใช้
         await prefs.setString('id', data['id']); // บันทึกค่าชื่อผู้ใช้
         await prefs.setString('tel', data['tel']);
+        await prefs.setString('email', data['email']);
         // ไปยังหน้า Homepage
         Navigator.pushReplacement(
           context,

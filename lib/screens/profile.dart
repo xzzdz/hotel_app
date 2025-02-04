@@ -68,7 +68,7 @@ class _ProfileState extends State<Profile> {
     final Map<String, String> body = {
       'id': id,
       'name': username ?? '',
-      'email': emailController.text.trim(),
+      'email': email ?? '', //emailController.text.trim()
       'role': role ?? '', // ใช้ role ที่ได้จาก _loadUserName
     };
 
@@ -291,24 +291,24 @@ class _ProfileState extends State<Profile> {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // อีเมลผู้ใช้งาน
-                                    TextFormField(
-                                      controller: emailController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'ชื่อผู้ใช้งาน',
-                                        hintText: 'ใส่ชื่อผู้ใช้งาน',
-                                        border: UnderlineInputBorder(),
-                                      ),
-                                      validator: (value) {
-                                        if (value == null ||
-                                            value.trim().isEmpty) {
-                                          return 'กรุณาใส่ชื่อผู้ใช้งาน';
-                                        }
-                                        return null;
-                                      },
-                                    ),
+                                    // // อีเมลผู้ใช้งาน
+                                    // TextFormField(
+                                    //   controller: emailController,
+                                    //   decoration: const InputDecoration(
+                                    //     labelText: 'ชื่อผู้ใช้งาน',
+                                    //     hintText: 'ใส่ชื่อผู้ใช้งาน',
+                                    //     border: UnderlineInputBorder(),
+                                    //   ),
+                                    //   validator: (value) {
+                                    //     if (value == null ||
+                                    //         value.trim().isEmpty) {
+                                    //       return 'กรุณาใส่ชื่อผู้ใช้งาน';
+                                    //     }
+                                    //     return null;
+                                    //   },
+                                    // ),
 
-                                    const SizedBox(height: 8.0),
+                                    // const SizedBox(height: 8.0),
 
                                     // รหัสผ่านใหม่
                                     TextFormField(
