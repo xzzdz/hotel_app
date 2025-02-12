@@ -331,6 +331,10 @@ class _HomepageState extends State<Homepage> {
                         item['assigned_to']
                             .toString()
                             .toLowerCase()
+                            .contains(searchText.toLowerCase()) ||
+                        item['time']
+                            .toString()
+                            .toLowerCase()
                             .contains(searchText.toLowerCase());
 
                     return matchesType &&
